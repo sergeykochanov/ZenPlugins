@@ -79,7 +79,7 @@ export async function fetchAuthorization ({ login, password }: Preferences): Pro
     }
   })).body === true
 
-  const response = await fetchApi('RetailMobileLoginService.svc/Login', {
+  const response = await fetchApi('RetailLoginService.svc/LoginFont', {
     method: 'POST',
     body: {
       username: login,
