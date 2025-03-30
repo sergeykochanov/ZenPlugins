@@ -1,6 +1,6 @@
 import '../../polyfills/webAssembly'
 import { fetchJson, FetchOptions, FetchResponse } from '../../common/network'
-import { InvalidLoginOrPasswordError } from '../../errors'
+import { InvalidLoginOrPasswordError, TemporaryError } from '../../errors'
 import { parse, splitCookiesString } from 'set-cookie-parser'
 import { AccountBalanceResponse, Auth, GetAccountTransactionsResponse, GetTransactionDetailsResponse, LoginResponse, Preferences } from './models'
 import { isArray, chunk } from 'lodash'
@@ -11,14 +11,43 @@ const baseUrl = 'https://rol.raiffeisenbank.rs/Retail/Protected/Services/'
 const concurrentFetchOps = 10
 const delayBetweenFetches = 500
 
-async function fetchApi (url: string, options?: FetchOptions): Promise<FetchResponse> {
-  return await fetchJson(baseUrl + url,
-    {
-      // needs for android,
-      // for some reason it fails to farse JSON with whitespaces in the beginning
-      parse: (body: string) => JSON.parse(body.trim()),
+async function fetchApi(url: string, options?: FetchOptions): Promise<FetchResponse> {
+  try {
+    return await fetchJson(baseUrl + url, {
+      parse: (body: string) => {
+        try {
+          const cleanedBody = body
+            .trim()
+            .replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+          
+          return JSON.parse(cleanedBody);
+        } catch (parseError) {
+          let errorMessage = 'Failed to parse API response';
+          if (parseError instanceof Error) {
+            errorMessage += `: ${parseError.message}`;
+          }
+
+          throw new TemporaryError(errorMessage);
+        }
+      },
       ...options
-    })
+    });
+  } catch (error) {
+    if (error instanceof TemporaryError) {
+      throw error;
+    }
+
+    let errorMessage = 'API request failed';
+    if (error instanceof Error) {
+      errorMessage += `: ${error.message}`;
+    } else if (typeof error === 'string') {
+      errorMessage += `: ${error}`;
+    } else {
+      errorMessage += `: ${JSON.stringify(error)}`;
+    }
+
+    throw new TemporaryError(errorMessage);
+  }
 }
 
 async function getSaltedPassword (login: string, password: string): Promise<string> {
