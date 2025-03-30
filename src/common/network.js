@@ -34,14 +34,12 @@ export async function fetch (url, options = {}) {
     ...options.body && { body: options.body }
   }, options.sanitizeRequestLog || false))
 
-  if (options.binaryResponse && (!ZenMoney.features || !ZenMoney.features.binaryResponseBody)) {
-    throw new IncompatibleVersionError()
-  }
-
   let response
   try {
     response = await global.fetch(url, init)
   } catch (e) {
+    shouldLog && console.debug('response', e)
+
     let err
     if (e instanceof TypeError && e.cause) {
       err = e.cause
