@@ -55,6 +55,9 @@ export async function fetch (url, options = {}) {
     }, 'failed to receive due to error', err)
     throw err
   }
+
+  shouldLog && console.debug('response', response)
+
   response = {
     ..._.pick(response, ['ok', 'status', 'statusText', 'url']),
     headers: response.headers.entries ? _.fromPairs([...response.headers.entries()]) : response.headers.map,
