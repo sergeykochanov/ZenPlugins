@@ -34,10 +34,14 @@ export async function fetch (url, options = {}) {
     ...options.body && { body: options.body }
   }, options.sanitizeRequestLog || false))
 
+  console.warn('BEFORE FETCH');
   let response
   try {
+    console.warn('TRYING FETCH');
     response = await global.fetch(url, init)
+    console.warn('FETCH SUCCEEDED');
   } catch (e) {
+    console.warn('FETCH FAILED', e);
     shouldLog && console.debug('response', e)
 
     let err
