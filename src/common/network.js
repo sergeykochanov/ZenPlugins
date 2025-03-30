@@ -40,10 +40,10 @@ export async function fetch (url, options = {}) {
     console.debug('TRYING FETCH')
 
     response = await Promise.resolve().then(() => global.fetch(url, init))
-    .catch(error => {
-      console.debug('FETCH INTERNAL ERROR', error);
-      throw error;
-    });
+      .catch(error => {
+        console.debug('FETCH INTERNAL ERROR', error)
+        throw error
+      })
 
     console.debug('FETCH SUCCEEDED')
   } catch (e) {
